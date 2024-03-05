@@ -47,22 +47,25 @@ def main():
         targets = cen2018features(tmp.T)
         polar = targets_to_polar_image(targets, tmp.T.shape)
 
-        # Radar Ringkey (Similar to Giseop Kim's Scan Context 2018)
-        ringkey = np.sum(polar, axis=0)
+        # Radar Range Ringkey (Similar to Giseop Kim's Scan Context 2018)
+        range_ringkey = np.sum(polar, axis=0)
 
-        split_number = len(ringkey) // split_ratio
-        split_ringkey = np.array_split(ringkey, split_number)
-        final_ringkey = np.vstack([chunk.sum(axis=0) for chunk in split_ringkey]).reshape((split_number, 1))
+        range_split_number = len(range_ringkey) // split_ratio
+        split_range_ringkey = np.array_split(range_ringkey, range_split_number)
+        final_range_ringkey = np.vstack([chunk.sum(axis=0) for chunk in split_range_ringkey]).reshape((range_split_number, 1))
         
-        rfsd = np.count_nonzero(polar == 0, axis=0)
-        split_rfsd = np.array_split(rfsd, split_number)
-        final_rfsd = np.vstack([chunk.sum(axis=0) for chunk in split_rfsd]).reshape((split_number, 1))
+        range_rfsd = np.count_nonzero(polar == 0, axis=0)
+        split_range_rfsd = np.array_split(range_rfsd, range_split_number)
+        final_range_rfsd = np.vstack([chunk.sum(axis=0) for chunk in split_range_rfsd]).reshape((range_split_number, 1))
 
-        final_desc = final_ringkey * (1/final_rfsd)
+        # Radar Angle Ringkey
+        angle_ringkey = np.sum(polar, axis=1)
+
+        referee = final_range_ringkey * (1/final_range_rfsd)
         end_time = time.time()
         generation_time[idx, 0] = end_time - start_time
 
-        np.save(save_path + str(idx).zfill(6) + '.npy', final_desc)
+        np.save(save_path + str(idx).zfill(6) + '.npy', referee)
         # plt.imshow(final_rfsd, cmap = 'jet')
         # plt.pause(0.001)
 
