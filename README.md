@@ -8,7 +8,7 @@ This repository represents the official implementation of the paper titled "ReFe
 [![arXiv](https://img.shields.io/badge/arXiv-2403.14176-b31b1b.svg?style=flat-square)](https://arxiv.org/abs/2403.14176)
 
 [Byunghee Choi*](https://scholar.google.co.kr/citations?view_op=list_works&hl=ko&user=JCJAwgIAAAAJ),
-[Hogyun Kim*]([https://scholar.google.com/citations?user=F6dY8DoAAAAJ&hl=ko](https://scholar.google.co.kr/citations?user=t5UEbooAAAAJ&hl=ko)),
+[Hogyun Kim*]([https://scholar.google.co.kr/citations?user=t5UEbooAAAAJ&hl=ko]),
 [Younggun Cho](https://scholar.google.com/citations?user=W5MOKWIAAAAJ&hl=ko)
 (* represents equal contribution.)
 
