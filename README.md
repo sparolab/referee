@@ -13,4 +13,8 @@ This repository represents the official implementation of the paper titled "ReFe
 (* represents equal contribution.)
 
 ## News!
+We will submit the journal version preprint to the community, soon.
 
+## Pipeline
+
+## Contact
