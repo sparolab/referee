@@ -15,7 +15,7 @@ This repository represents the official implementation of the paper titled "ReFe
 ![image](fig/referee.gif)
 
 ## News!
-We will submit the journal version preprint to the community, soon.
+* **[05.08]** **We will submit the journal version preprint to the community, soon.**
 
 ## Pipeline
 ![image](fig/pipeline.svg)
@@ -33,7 +33,6 @@ We will submit the journal version preprint to the community, soon.
 
 
 **1. Create the Referee** 
-  * We implement our place recognition method in python3. 
 <pre>
 <code>
     $ python3 place_description.py
@@ -41,7 +40,6 @@ We will submit the journal version preprint to the community, soon.
 </pre>  
 
 **2. Enjoy place recognition with Referee (cf. we provide the single/multi-session mode)** 
-  * We implement our place recognition method in python3. 
 <pre>
 <code>
     $ python3 place_recognition.py
