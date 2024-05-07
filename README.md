@@ -4,8 +4,7 @@
 
 This repository represents the official implementation of the paper titled "ReFeree: Radar-based efficient global descriptor using a Feature and Free space for Place Recognition".
 
-![image](fig/pipeline.svg)
-![image](fig/generate.svg)
+![image](fig/referee2.gif)
 
 [![ProjectPage](https://github.com/sparolab/Joint_ID/blob/main/fig/badges/badge-website.svg)](https://sites.google.com/view/radar-referee)
 [![arXiv](https://img.shields.io/badge/arXiv-2403.14176-b31b1b.svg?style=flat-square)](https://arxiv.org/abs/2403.14176)
