@@ -1,5 +1,7 @@
 # ReFeree: Radar-based efficient global descriptor \\ using a Feature and Free space for Place Recognition
 
+**News!**
+
 **ICRA Workshop 2024 (Radar in Robotics)**
 
 This repository is ReFeree: Radar Efficient Federation of free space and intensity for global place recognition
@@ -10,4 +12,4 @@ This repository is ReFeree: Radar Efficient Federation of free space and intensi
 [Byunghee Choi*](https://scholar.google.com/citations?user=kiBTkqMAAAAJ&hl=en&oi=sra),
 [Hogyun Kim*](https://scholar.google.com/citations?user=F6dY8DoAAAAJ&hl=ko),
 [Younggun Cho](https://scholar.google.com/citations?user=W5MOKWIAAAAJ&hl=ko)
-`
+(* represents equal contribution.)
