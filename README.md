@@ -18,7 +18,7 @@ This repository represents the official implementation of the paper titled "ReFe
 * **[05.08]** **We will submit the journal version ReFeree to the community, soon. Also, the journal version ReFeree's SLAM code will be released together**
 
 ## Poster
-![image](poster/icra_2024_referee_poster.pdf)
+![image](fig/icra_2024_referee_poster.png)
 
 ## How to use Referee?
 
