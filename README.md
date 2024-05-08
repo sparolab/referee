@@ -18,9 +18,6 @@ This repository represents the official implementation of the paper titled "ReFe
 * **[05.08]** **We will submit the journal version ReFeree to the community, soon. Also, the journal version ReFeree's SLAM code will be released together**
 
 
-## Generation
-![image](fig/generate.svg)
-
 ## How to use Referee?
 
 1. Create the Referee
