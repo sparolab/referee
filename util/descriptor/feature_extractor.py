@@ -3,7 +3,6 @@ import numpy as np
 import os.path as osp
 from scipy import ndimage
 from glob import glob
-from ..params import *
 
 def targets_to_polar_image(targets, shape):
     polar = np.zeros(shape)
@@ -58,14 +57,8 @@ def cen2018features(fft_data: np.ndarray, min_range=58, zq=3.0, sigma_gauss=17) 
         np.ndarray: N x 2 array of feature locations (azimuth_bin, range_bin)
     """
     nazimuths = fft_data.shape[0]
-    # w_median = 200
-    # q = fft_data - ndimage.median_filter(fft_data, size=(1, w_median))  # N x R
     q = fft_data - np.mean(fft_data, axis=1, keepdims=True)
-    # p = ndimage.gaussian_filter1d(q, sigma=sigma_gauss, truncate=3.0) # N x R
-    # p = ndimage.gaussian_filter1d(q, sigma=17, truncate=3.0) # N x R 654/67
-    p = ndimage.uniform_filter1d(q, size=17, mode='reflect') # N x R 656/65
-    # p = ndimage.minimum_filter1d(q, size=20) # N x R
-    # p = ndimage.generic_filter1d(q, filter_size=5) # N x R
+    p = ndimage.gaussian_filter1d(q, sigma=sigma_gauss, truncate=3.0) # N x R
     noise = np.where(q < 0, q, 0) # N x R
     nonzero = np.sum(q < 0, axis=-1, keepdims=True) # N x 1
     sigma_q = np.sqrt(np.sum(noise**2, axis=-1, keepdims=True) / nonzero) # N x 1

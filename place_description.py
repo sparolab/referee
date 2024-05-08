@@ -6,7 +6,6 @@ import os.path as osp
 from glob import glob
 import matplotlib.pyplot as plt
 
-from util.params import *
 from util.descriptor.referee import *
 
 class TerminalColors:
@@ -26,16 +25,12 @@ parser.add_argument('--datasets_name', type = str, default = 'Sejong_02', help =
 args = parser.parse_args()
 
 def main():
-    radar_root = osp.join(dataset_path, args.datasets_name, 'polar')
+    radar_root = osp.join('example')
     radar_files = sorted(glob(osp.join(radar_root, "*.png")))
-    
-    save_path = saveDescPath(args.datasets_name, args.desc, referee_split_ratio)
-    dataset_name = args.datasets_name.split("/")[0]
-    print(dataset_name)
-    
+        
     ## ReFeree
-    generation_time = referee(radar_files, save_path, referee_split_ratio)
-    print("Descriptor Size: ", os.path.getsize(osp.join(save_path, '000000.npy')))
+    generation_time = referee(radar_files, "referee/", 10)
+    print("Descriptor Size: ", os.path.getsize(osp.join("referee/", '000000.npy')))
     
     print("Time: ", np.mean(generation_time[:, 0]))
 
