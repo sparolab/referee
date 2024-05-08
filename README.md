@@ -24,17 +24,19 @@ This repository represents the official implementation of the paper titled "ReFe
 ![image](fig/generate.svg)
 
 ## How to use Referee?
-1. Download Datasets and Modify datasets_name in "place_description.py"
-<pre>
-<code>
-    $ parser.add_argument('--datasets_name', type = str, default = 'your_datasets_name', help = 'we propose various methods (referee)')
-</code>
-</pre>  
 
-2. Create the Referee
+1. Create the Referee
 <pre>
 <code>
     $ python3 place_description.py
+</code>
+</pre>  
+
+
+2. Check the distance between two Referees
+<pre>
+<code>
+    $ python3 place_recognition.py
 </code>
 </pre>  
 

@@ -1,11 +1,8 @@
 import os
-import argparse
-
 import numpy as np
 import os.path as osp
-from glob import glob
-import matplotlib.pyplot as plt
 
+from glob import glob
 from util.descriptor.referee import *
 
 class TerminalColors:
@@ -19,17 +16,13 @@ class TerminalColors:
     WHITE = '\033[1;37m'
     RESET = '\033[0m'
 
-parser = argparse.ArgumentParser(description= "Radar Place Recognition Packages")
-parser.add_argument('--desc', type = str, default = 'referee', help = 'we propose various methods (referee)')
-parser.add_argument('--datasets_name', type = str, default = 'Sejong_02', help = 'we propose various methods (referee)')
-args = parser.parse_args()
-
 def main():
     radar_root = osp.join('example')
     radar_files = sorted(glob(osp.join(radar_root, "*.png")))
         
     ## ReFeree
-    generation_time = referee(radar_files, "referee/", 10)
+    ## We recommend the split ratio to 8 or 10.
+    generation_time = referee(radar_files, "referee/", split_ratio=10)
     print("Descriptor Size: ", os.path.getsize(osp.join("referee/", '000000.npy')))
     
     print("Time: ", np.mean(generation_time[:, 0]))

@@ -1,10 +1,7 @@
-import os
-import argparse
-
 import numpy as np
 import os.path as osp
-from glob import glob
 
+from glob import glob
 from scipy.spatial import cKDTree
 
 class TerminalColors:
@@ -17,11 +14,6 @@ class TerminalColors:
     CYAN = '\033[1;36m'
     WHITE = '\033[1;37m'
     RESET = '\033[0m'
-
-parser = argparse.ArgumentParser(description= "Radar Place Recognition Packages")
-parser.add_argument('--desc', type = str, default = 'referee', help = 'we propose various methods (referee)')
-parser.add_argument('--datasets_name', type = str, default = 'Sejong_02', help = 'we propose various methods (referee)')
-args = parser.parse_args()
 
 def main():
     referee_root = osp.join('referee')
