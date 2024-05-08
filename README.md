@@ -17,8 +17,6 @@ This repository represents the official implementation of the paper titled "ReFe
 ## News!
 * **[05.08]** **We will submit the journal version ReFeree to the community, soon. Also, the journal version ReFeree's SLAM code will be released together**
 
-## Pipeline
-![image](fig/pipeline.svg)
 
 ## Generation
 ![image](fig/generate.svg)
