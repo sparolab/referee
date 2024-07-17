@@ -23,11 +23,7 @@ This repository represents the official implementation of the paper titled "ReFe
 ## How to use Referee?
 
 1. Create the Referee
-<pre>
-<code>
-    $ python3 place_description.py
-</code>
-</pre>  
+
 
 
 2. Check the distance between two Referees
