@@ -2,12 +2,15 @@
 
 **Under-Review**
 
-[![ProjectPage](https://github.com/sparolab/Joint_ID/blob/main/fig/badges/badge-website.svg)](https://sites.google.com/view/radar-referee)
+[![ProjectPage](https://github.com/sparolab/Joint_ID/blob/main/fig/badges/badge-website.svg)](https://sites.google.com/view/referee-radar)
 
-This repository represents the official implementation of the paper titled "ReFeree: Radar-based efficient global descriptor using a Feature and Free space for Place Recognition".
+This repository represents the official implementation of the paper titled "ReFeree: Radar-based Efficient, Lightweight, and Robust Global Descriptor using a Feature and Free space for Place Recognition and Localization".
 
-[Byunghee Choi*](https://scholar.google.co.kr/citations?view_op=list_works&hl=ko&user=JCJAwgIAAAAJ),
+Code will be released after review process.
+
 [Hogyun Kim*](https://scholar.google.co.kr/citations?user=t5UEbooAAAAJ&hl=ko),
+[Byunghee Choi*](https://scholar.google.co.kr/citations?view_op=list_works&hl=ko&user=JCJAwgIAAAAJ),
+Euncheol Choi,
 [Younggun Cho](https://scholar.google.com/citations?user=W5MOKWIAAAAJ&hl=ko)
 (* represents equal contribution.)
 
