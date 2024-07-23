@@ -6,7 +6,7 @@
 
 This repository represents the official implementation of the paper titled "ReFeree: Radar-based Efficient, Lightweight, and Robust Global Descriptor using a Feature and Free space for Place Recognition and Localization".
 
-Code will be released after review process. Radar SLAM code also will be released in this repository.
+Code will be released after review process. Radar SLAM code also will be released in [this repository](https://github.com/sparolab/referee_slam.git).
 
 [Hogyun Kim*](https://scholar.google.co.kr/citations?user=t5UEbooAAAAJ&hl=ko),
 [Byunghee Choi*](https://scholar.google.co.kr/citations?view_op=list_works&hl=ko&user=JCJAwgIAAAAJ),
