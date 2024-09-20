@@ -24,5 +24,5 @@
 </div>
 
 ## Contact
-* Byunghee Choi (bhbhchoi@inha.edu)
 * Hogyun Kim (hg.kim@inha.edu)
+* Byunghee Choi (bhbhchoi@inha.edu)
