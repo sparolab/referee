@@ -21,6 +21,8 @@
 
 **[Spatial AI and Robotics Lab (SPARO)](https://sites.google.com/view/sparo/%ED%99%88?authuser=0&pli=1)**
 
+</div>
+
 ## Contact
 * Byunghee Choi (bhbhchoi@inha.edu)
 * Hogyun Kim (hg.kim@inha.edu)
