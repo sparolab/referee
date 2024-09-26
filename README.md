@@ -23,6 +23,23 @@
 
 </div>
 
+## News
+* [September, 2024] ReFeree is accepted in RA-L!!
+
+## What is the ReFeree?
+
+## How to use the ReFeree?
+
+## Supplementary
+
+## Main Contribution
+* [Hogyun Kim](https://scholar.google.com/citations?user=t5UEbooAAAAJ&hl=ko)
+* [Byunghee Choi](https://scholar.google.com/citations?user=JCJAwgIAAAAJ&hl=ko)
+* [Euncheol Choi]()
+* [Younggun Cho](https://scholar.google.com/citations?user=W5MOKWIAAAAJ&hl=ko)
+
+## Citation
+
 ## Contact
 * Hogyun Kim (hg.kim@inha.edu)
 * Byunghee Choi (bhbhchoi@inha.edu)
