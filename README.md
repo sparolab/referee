@@ -33,6 +33,8 @@
 	* Integrated with Yeti-Odometry: [ReFeree-Radar-SLAM](https://github.com/sparolab/referee_radar_slam.git)
 
 ## What is the ReFeree?
+* ReFeree is a radar-based lightweight and robust global descriptor utilizing features and free space. ReFeree achieves rotational invariance and lightweight by selecting a one-dimensional ring-shaped description and robustness by mitigating the impact of false detection utilizing opposite noise characteristics between free space and feature.
+
 
 ## How to use the ReFeree?
 * Python version
