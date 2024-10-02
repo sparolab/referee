@@ -41,6 +41,7 @@
 * [Younggun Cho](https://scholar.google.com/citations?user=W5MOKWIAAAAJ&hl=ko)
 
 ## Special Thanks
+* [SARAH H. CEN](https://scholar.google.com/citations?user=2BTuWpgAAAAJ&hl=en)
 * [Keenan Burnett](https://github.com/keenan-burnett/radar_to_lidar_calib)
 
 ## Citation
