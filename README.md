@@ -28,6 +28,10 @@
 * [September, 2024] Now, Python version's ReFeree code is released!!
 * [September, 2024] ReFeree is accepted in RA-L!!
 
+## Note
+* ReFeree can be integrated with various Radar odometry.
+	* Integrated with Yeti-Odometry: [ReFeree-Radar-SLAM](https://github.com/sparolab/referee_radar_slam.git)
+
 ## What is the ReFeree?
 
 ## How to use the ReFeree?
