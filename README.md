@@ -31,8 +31,19 @@
 ## What is the ReFeree?
 
 ## How to use the ReFeree?
+* Python version
+	    ```
+	    $ git clone https://github.com/sparolab/solid.git
+	    $ cd python
+	    $ python3 test.py
+	    ```
 
 ## Supplementary
+* [Arxiv]()
+* [Paper]()
+* [Video](https://www.youtube.com/watch?v=aQ0OlHYJCYI)
+* [Project page](https://sites.google.com/view/referee-radar)
+
 
 ## Main Contribution
 * [Hogyun Kim](https://scholar.google.com/citations?user=t5UEbooAAAAJ&hl=ko)
