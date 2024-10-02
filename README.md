@@ -24,7 +24,8 @@
 </div>
 
 ## News
-* [September, 2024] Now, [ReFeree-Radar-SLAM](https://github.com/sparolab/referee_radar_slam.git) code is released!!
+* [September, 2024] Cpp version's ReFeree code and [ReFeree-Radar-SLAM](https://github.com/sparolab/referee_radar_slam.git) code will be released!!
+* [September, 2024] Now, Python version's ReFeree code is released!!
 * [September, 2024] ReFeree is accepted in RA-L!!
 
 ## What is the ReFeree?
