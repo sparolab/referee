@@ -32,11 +32,11 @@
 
 ## How to use the ReFeree?
 * Python version
-	    ```
-	    $ git clone https://github.com/sparolab/solid.git
-	    $ cd python
-	    $ python3 test.py
-	    ```
+    ```
+    $ git clone https://github.com/sparolab/referee.git
+    $ cd python
+    $ python3 test.py
+    ```
 
 ## Supplementary
 * [Arxiv]()
