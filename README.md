@@ -35,6 +35,7 @@
 ## What is the ReFeree?
 * ReFeree is a radar-based lightweight and robust global descriptor utilizing features and free space.
 * ReFeree achieves rotational invariance and lightweight by selecting a one-dimensional ring-shaped description and robustness by mitigating the impact of false detection utilizing opposite noise characteristics between free space and feature.
+  <p align="center"><img src="fig/pipeline.png") alt="animated" width="80%" /></p>
 
 
 ## How to use the ReFeree?
