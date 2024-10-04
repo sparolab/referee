@@ -46,8 +46,19 @@
     $ python3 test.py
     ```
 
+* Cpp version
+  ```
+    $ git clone https://github.com/sparolab/referee.git
+    $ cd cpp
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
+    $ ./test_referee
+  ```
+
 ## Supplementary
-* [Arxiv]()
+* [Arxiv](https://arxiv.org/abs/2410.01325)
 * [Paper]()
 * [Video](https://www.youtube.com/watch?v=aQ0OlHYJCYI)
 * [Project page](https://sites.google.com/view/referee-radar)
