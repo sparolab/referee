@@ -1,4 +1,4 @@
-# Install script for directory: /media/bhbhchoi/6EEA0A20EA09E4E5/Research/Project/ReFeree_journal/github/referee/cpp
+# Install script for directory: /home/hogyun2/git/test/referee/cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -37,6 +37,11 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
+# Set default install directory permissions.
+if(NOT DEFINED CMAKE_OBJDUMP)
+  set(CMAKE_OBJDUMP "/usr/bin/objdump")
+endif()
+
 if(CMAKE_INSTALL_COMPONENT)
   set(CMAKE_INSTALL_MANIFEST "install_manifest_${CMAKE_INSTALL_COMPONENT}.txt")
 else()
@@ -45,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/media/bhbhchoi/6EEA0A20EA09E4E5/Research/Project/ReFeree_journal/github/referee/cpp/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/hogyun2/git/test/referee/cpp/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

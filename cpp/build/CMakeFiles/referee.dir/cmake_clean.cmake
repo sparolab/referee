@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/referee.dir/src/referee.cpp.o"
+  "CMakeFiles/referee.dir/src/referee.cpp.o.d"
   "libreferee.a"
   "libreferee.pdb"
 )

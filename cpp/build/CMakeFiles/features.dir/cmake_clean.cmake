@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/features.dir/src/features.cpp.o"
+  "CMakeFiles/features.dir/src/features.cpp.o.d"
   "libfeatures.a"
   "libfeatures.pdb"
 )

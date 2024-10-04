@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/radar_utils.dir/src/radar_utils.cpp.o"
+  "CMakeFiles/radar_utils.dir/src/radar_utils.cpp.o.d"
   "libradar_utils.a"
   "libradar_utils.pdb"
 )

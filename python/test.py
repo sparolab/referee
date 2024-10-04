@@ -18,7 +18,7 @@ args = parser.parse_args()
 # ===========================================================================================================
 # ================================================   Query   ================================================
 # ===========================================================================================================
-query_radar_image = cv2.imread("../examples/img/000000.png", cv2.IMREAD_GRAYSCALE)
+query_radar_image = cv2.imread("fig/000000.png", cv2.IMREAD_GRAYSCALE)
 query_feature_image = cen2018features(query_radar_image.T)
 query_binary_image = targets_to_polar_image(query_feature_image, query_radar_image.T.shape)
 
@@ -28,7 +28,7 @@ query_a_referee = generate_a_referee(query_binary_image, args.a_referee_split_ra
 # ===========================================================================================================
 # =============================================   Candidate 1   =============================================
 # ===========================================================================================================
-candidates1_radar_image = cv2.imread("../examples/img/000001.png", cv2.IMREAD_GRAYSCALE)
+candidates1_radar_image = cv2.imread("fig/000001.png", cv2.IMREAD_GRAYSCALE)
 candidates1_feature_image = cen2018features(candidates1_radar_image.T)
 candidates1_binary_image = targets_to_polar_image(candidates1_feature_image, candidates1_radar_image.T.shape)
 
@@ -38,7 +38,7 @@ candidates1_a_referee = generate_a_referee(candidates1_binary_image, args.a_refe
 # ===========================================================================================================
 # =============================================   Candidate 2   =============================================
 # ===========================================================================================================
-candidates2_radar_image = cv2.imread("../examples/img/000010.png", cv2.IMREAD_GRAYSCALE)
+candidates2_radar_image = cv2.imread("fig/000010.png", cv2.IMREAD_GRAYSCALE)
 candidates2_feature_image = cen2018features(candidates2_radar_image.T)
 candidates2_binary_image = targets_to_polar_image(candidates2_feature_image, candidates2_radar_image.T.shape)
 

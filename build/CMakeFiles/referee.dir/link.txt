@@ -1,2 +1,0 @@
-/usr/bin/ar qc libreferee.a  CMakeFiles/referee.dir/src/referee.cpp.o
-/usr/bin/ranlib libreferee.a

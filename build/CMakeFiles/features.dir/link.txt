@@ -1,2 +1,0 @@
-/usr/bin/ar qc libfeatures.a  CMakeFiles/features.dir/src/features.cpp.o
-/usr/bin/ranlib libfeatures.a
