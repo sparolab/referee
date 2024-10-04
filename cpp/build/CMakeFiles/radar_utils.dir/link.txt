@@ -1,2 +1,0 @@
-/usr/bin/ar qc libradar_utils.a CMakeFiles/radar_utils.dir/src/radar_utils.cpp.o
-/usr/bin/ranlib libradar_utils.a

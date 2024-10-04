@@ -1,6 +1,0 @@
-/home/hogyun2/git/test/referee/cpp/build/CMakeFiles/features.dir
-/home/hogyun2/git/test/referee/cpp/build/CMakeFiles/referee.dir
-/home/hogyun2/git/test/referee/cpp/build/CMakeFiles/radar_utils.dir
-/home/hogyun2/git/test/referee/cpp/build/CMakeFiles/test_referee.dir
-/home/hogyun2/git/test/referee/cpp/build/CMakeFiles/edit_cache.dir
-/home/hogyun2/git/test/referee/cpp/build/CMakeFiles/rebuild_cache.dir
