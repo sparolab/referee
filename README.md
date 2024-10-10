@@ -48,15 +48,15 @@
     ```
 
 * Cpp version
-  ```
-    $ git clone https://github.com/sparolab/referee.git
-    $ cd cpp
-    $ mkdir build
-    $ cd build
-    $ cmake ..
-    $ make
-    $ ./test_referee
-  ```
+	```
+	$ git clone https://github.com/sparolab/referee.git
+	$ cd cpp
+	$ mkdir build
+	$ cd build
+	$ cmake ..
+	$ make
+	$ ./test_referee
+	```
 
 ## Supplementary
 * [Arxiv](https://arxiv.org/abs/2410.01325)
