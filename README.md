@@ -42,14 +42,14 @@
 ## How to use the ReFeree?
 * Python version
     ```
-    $ git clone https://github.com/sparolab/referee.git
+    $ git clone https://github.com/sparolab/ReFeree.git
     $ cd python
     $ python3 test.py
     ```
 
 * Cpp version
 	```
-	$ git clone https://github.com/sparolab/referee.git
+	$ git clone https://github.com/sparolab/ReFeree.git
 	$ cd cpp
 	$ mkdir build
 	$ cd build
