@@ -54,6 +54,10 @@ std::optional<gtsam::Pose3> registerLoop(const KeyframeStore& store, const LoopP
   Eigen::Affine3f correction(gicp.getFinalTransformation());
   pcl::getTranslationAndEulerAngles(correction, x, y, z, roll, pitch, yaw);
 
+  if (params.max_translation > 0.0 &&
+      std::hypot(x, y) > params.max_translation)
+    return std::nullopt;
+
   const gtsam::Pose3 from(gtsam::Rot3::RzRyRx(roll, pitch, yaw), gtsam::Point3(x, y, z));
   return from.between(gtsam::Pose3());
 }

@@ -25,6 +25,19 @@ struct RegistrationParams {
   double fitness_threshold = 200.0;
   // Use the yaw from the angular descriptor as GICP's starting point.
   bool use_descriptor_yaw = true;
+
+  // Largest relative translation a loop may claim, metres. Two keyframes at the
+  // same place cannot be far apart, so this rejects a wrong match on geometry
+  // alone, without touching the descriptor.
+  //
+  // The descriptor cannot do this job itself: cosine similarity between ReFeree
+  // range descriptors sits in [0.999995, 1] whether or not the places match -
+  // the ordering is informative, the absolute value is not - so a similarity
+  // threshold rejects nothing. On MulRan KAIST_03, 44 per cent of accepted
+  // loops were wrong until this gate was added; true loops measure 0.78 m at
+  // the median and 2.58 m at p95, false ones 11.46 m and 34 m, and a 3 m cutoff
+  // keeps 96 per cent of the true ones at 94 per cent precision.
+  double max_translation = 3.0;
 };
 
 // The transform from the current keyframe to the previous one, or nothing when

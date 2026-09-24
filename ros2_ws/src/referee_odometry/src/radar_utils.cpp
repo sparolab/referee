@@ -2,6 +2,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <algorithm>
+#include <stdexcept>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -9,39 +12,22 @@
 #include <opencv2/imgproc.hpp>
 #include "referee_odometry/radar_utils.hpp"
 
-static inline bool exists(const std::string& name) {
-    struct stat buffer;
-    return !(stat (name.c_str(), &buffer) == 0);
-}
-
-// assumes file names are EPOCH times which can be sorted numerically
-struct less_than_img {
-    inline bool operator() (const std::string& img1, const std::string& img2) {
-        std::vector<std::string> parts;
-        boost::split(parts, img1, boost::is_any_of("."));
-        int64 i1 = std::stoll(parts[0]);
-        boost::split(parts, img2, boost::is_any_of("."));
-        int64 i2 = std::stoll(parts[0]);
-        return i1 < i2;
-    }
-};
-
+// The published implementation filtered entries with a helper called exists()
+// that returned false when the file existed, called on a bare name so the stat
+// almost always failed. It removed "." and ".." by accident and nothing else.
+// This does it on purpose.
 void get_file_names(std::string path, std::vector<std::string> &files, std::string extension) {
-    DIR *dirp = opendir(path.c_str());
-    struct dirent *dp;
-    while ((dp = readdir(dirp)) != NULL) {
-        if (exists(dp->d_name)) {
-            if (!extension.empty()) {
-                std::vector<std::string> parts;
-                boost::split(parts, dp->d_name, boost::is_any_of("."));
-                if (parts[parts.size() - 1].compare(extension) != 0)
-                    continue;
-            }
-            files.push_back(dp->d_name);
-        }
+    namespace fs = std::filesystem;
+    files.clear();
+    for (const auto& entry : fs::directory_iterator(path)) {
+        if (!entry.is_regular_file()) continue;
+        if (!extension.empty() && entry.path().extension() != "." + extension) continue;
+        files.push_back(entry.path().filename().string());
     }
-    // Sort files in ascending order of time stamp
-    std::sort(files.begin(), files.end(), less_than_img());
+    // File names are epoch times, so numeric order is time order.
+    std::sort(files.begin(), files.end(), [](const std::string& a, const std::string& b) {
+        return std::stoll(a) < std::stoll(b);
+    });
 }
 
 void load_radar(std::string path, std::vector<int64_t> &timestamps, std::vector<double> &azimuths,
@@ -57,6 +43,17 @@ void load_radar(std::string path, std::vector<int64_t> &timestamps, std::vector<
     int range_bins = 3768;
     if (navtech_version == CIR204)
         range_bins = 3360;
+
+    // Each row is eleven metadata bytes followed by the range bins. A scan that
+    // has already been stripped and transposed does not fit that, and reading it
+    // as though it did runs off the end of every row.
+    if (raw_example_data.cols < 11 + range_bins) {
+        throw std::runtime_error(
+            "load_radar: " + path + " is " + std::to_string(raw_example_data.rows) + "x" +
+            std::to_string(raw_example_data.cols) + ", expected at least 11+" +
+            std::to_string(range_bins) +
+            " columns. This reader wants the Oxford layout, one row per azimuth.");
+    }
     fft_data = cv::Mat::zeros(N, range_bins, CV_32F);
 #pragma omp parallel
     for (int i = 0; i < N; ++i) {

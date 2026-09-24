@@ -18,7 +18,7 @@ def generate_launch_description() -> LaunchDescription:
                               description="Sequence directory holding polar/"),
         DeclareLaunchArgument("save_directory", default_value="/data/output/",
                               description="Where the pose graph is written; end with /"),
-        DeclareLaunchArgument("keyframe_gap_m", default_value="2.0"),
+        DeclareLaunchArgument("keyframe_gap_m", default_value="0.0"),
 
         Node(
             package="referee_odometry",

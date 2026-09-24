@@ -9,6 +9,7 @@
 // Thresholds that the published implementation left as file-scope globals are
 // parameters here, with the published values as defaults.
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <limits>
@@ -57,11 +58,15 @@ class RangeDescriptorDatabase {
   // Most similar entry to `query`, or an empty candidate when none clears the
   // threshold. Brute force: the descriptor is short enough that a tree costs
   // more than it saves.
-  LoopCandidate detectLoopClosure(const std::vector<float>& query) const {
+  // `limit`, when positive, caps how many leading entries may be matched. The
+  // caller usually knows better than a fixed count how much of the recent past
+  // to exclude - how far the vehicle has travelled, say.
+  LoopCandidate detectLoopClosure(const std::vector<float>& query, int limit = -1) const {
     LoopCandidate best;
     if (query.empty() || entries_.empty()) return best;
 
-    const int searchable = static_cast<int>(entries_.size()) - params_.num_exclude_recent;
+    int searchable = static_cast<int>(entries_.size()) - params_.num_exclude_recent;
+    if (limit >= 0) searchable = std::min(searchable, limit);
     if (searchable <= 0) return best;
 
     double best_similarity = std::numeric_limits<double>::lowest();

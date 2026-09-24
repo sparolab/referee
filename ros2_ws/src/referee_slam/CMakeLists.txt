@@ -40,7 +40,11 @@ ament_target_dependencies(pose_graph_node
   rclcpp nav_msgs sensor_msgs geometry_msgs tf2 tf2_geometry_msgs pcl_conversions
   referee_interfaces nano_gicp)
 
-install(TARGETS pose_graph_node DESTINATION lib/${PROJECT_NAME})
+add_executable(reoptimize src/reoptimize.cpp src/graph_io.cpp)
+target_include_directories(reoptimize PRIVATE include ${GTSAM_INCLUDE_DIR})
+target_link_libraries(reoptimize gtsam Eigen3::Eigen)
+
+install(TARGETS pose_graph_node reoptimize DESTINATION lib/${PROJECT_NAME})
 install(DIRECTORY include/ DESTINATION include)
 foreach(dir launch config)
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${dir}")

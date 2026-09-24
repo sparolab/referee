@@ -12,6 +12,8 @@
 #include <atomic>
 #include <chrono>
 #include <deque>
+#include <fstream>
+#include <iomanip>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -28,6 +30,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <tf2/LinearMath/Matrix3x3.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
@@ -37,16 +40,46 @@
 #include "referee_slam/loop_registration.hpp"
 
 namespace referee_slam {
+namespace {
+
+Pose6D fromOdometry(const nav_msgs::msg::Odometry& odom) {
+  const auto& q = odom.pose.pose.orientation;
+  double roll, pitch, yaw;
+  tf2::Matrix3x3(tf2::Quaternion(q.x, q.y, q.z, q.w)).getRPY(roll, pitch, yaw);
+  return Pose6D{odom.pose.pose.position.x, odom.pose.pose.position.y,
+                odom.pose.pose.position.z, roll, pitch, yaw};
+}
+
+}  // namespace
 
 class PoseGraphNode : public rclcpp::Node {
  public:
   PoseGraphNode() : Node("referee_slam") {
     save_directory_ = declare_parameter<std::string>("save_directory", "/data/output/");
-    keyframe_gap_m_ = declare_parameter<double>("keyframe_gap_m", 2.0);
+    // The published launch used 0.0 - every frame becomes a keyframe.
+    keyframe_gap_m_ = declare_parameter<double>("keyframe_gap_m", 0.0);
     frame_id_ = declare_parameter<std::string>("frame_id", "odom");
     loop_period_ms_ = declare_parameter<int>("loop_detection_period_ms", 100);
     registration_.fitness_threshold = declare_parameter<double>("loop_fitness_threshold", 200.0);
     registration_.use_descriptor_yaw = declare_parameter<bool>("use_descriptor_yaw", true);
+    // Off by default: the published pipeline has no such gate, and with the
+    // rest of it correct it does not need one.
+    registration_.max_translation = declare_parameter<double>("loop_max_translation", 0.0);
+    loop_noise_score_ = declare_parameter<double>("loop_noise_score", 0.5);
+    // The published value was 0, which leaves the query itself in the search
+    // and makes it its own best match at a cosine of 1. The original did not
+    // filter that out and closed loops against self; excluding the recent
+    // keyframes is what the parameter is for.
+    retrieval_.num_exclude_recent = declare_parameter<int>("loop_num_exclude_recent", 0);
+    // The published implementation excluded nothing, which lets a query match
+    // itself; a short exclusion avoids that without inventing a policy.
+    min_loop_travel_ = declare_parameter<double>("loop_min_travel_m", 10.0);
+    retrieval_.similarity_threshold = declare_parameter<double>("loop_similarity_threshold", 0.0);
+    save_every_ = declare_parameter<int>("save_every_keyframes", 100);
+    optimise_period_ms_ = declare_parameter<int>("optimise_period_ms", 1000);
+
+    store_.setRetrievalParams(retrieval_);
+    store_.setMinLoopTravel(min_loop_travel_);
 
     initialiseNoise();
     gtsam::ISAM2Params params;
@@ -75,27 +108,30 @@ class PoseGraphNode : public rclcpp::Node {
 
     graph_worker_ = std::thread(&PoseGraphNode::runGraph, this);
     loop_worker_ = std::thread(&PoseGraphNode::runLoopDetection, this);
+    optimise_worker_ = std::thread(&PoseGraphNode::runOptimisation, this);
   }
 
   ~PoseGraphNode() override {
     running_ = false;
     if (graph_worker_.joinable()) graph_worker_.join();
     if (loop_worker_.joinable()) loop_worker_.join();
+    if (optimise_worker_.joinable()) optimise_worker_.join();
     save();
   }
 
  private:
   void initialiseNoise() {
-    prior_noise_ = gtsam::noiseModel::Diagonal::Variances(
-        (gtsam::Vector(6) << 1e12, 1e12, 1e12, 1e12, 1e12, 1e12).finished());
+    // The prior on the first pose is what fixes the gauge. It has to be tight:
+    // with a loose one the graph is free to translate and rotate as a whole and
+    // the linear system comes out underdetermined.
+    prior_noise_ = gtsam::noiseModel::Diagonal::Variances(gtsam::Vector6::Constant(1e-12));
     odometry_noise_ = gtsam::noiseModel::Diagonal::Variances(
         (gtsam::Vector(6) << 1e-6, 1e-6, 1e-6, 1e-4, 1e-4, 1e-4).finished());
     // Loops are the measurements most likely to be wrong, so they get a robust
     // kernel rather than a tighter covariance.
     loop_noise_ = gtsam::noiseModel::Robust::Create(
         gtsam::noiseModel::mEstimator::Cauchy::Create(1.0),
-        gtsam::noiseModel::Diagonal::Variances(
-            (gtsam::Vector(6) << 1e-6, 1e-6, 1e-6, 1e-4, 1e-4, 1e-4).finished()));
+        gtsam::noiseModel::Diagonal::Variances(gtsam::Vector6::Constant(loop_noise_score_)));
   }
 
   // Pairs an odometry message with the cloud and descriptor of the same scan,
@@ -124,7 +160,8 @@ class PoseGraphNode : public rclcpp::Node {
       if (have_previous) travelled += translationBetween(previous, pose);
       previous = pose;
       have_previous = true;
-      if (travelled < keyframe_gap_m_) continue;
+      // A gap of 0 keeps every frame, which is what the published launch did.
+      if (keyframe_gap_m_ > 0.0 && travelled < keyframe_gap_m_) continue;
       travelled = 0.0;
 
       auto keyframe_cloud = std::make_shared<Cloud>();
@@ -134,8 +171,11 @@ class PoseGraphNode : public rclcpp::Node {
                                    keyframe_cloud, descriptor.range_descriptor,
                                    descriptor.angle_descriptor);
       addOdometryFactor(index);
-      optimise();
-      publishPath();
+      // Optimising on every keyframe is quadratic: each call re-reads the whole
+      // estimate to refresh the store. The published implementation ran iSAM2
+      // on its own thread at its own rate, and so does this.
+      graph_dirty_ = true;
+      if (save_every_ > 0 && index > 0 && index % save_every_ == 0) save();
     }
   }
 
@@ -158,8 +198,18 @@ class PoseGraphNode : public rclcpp::Node {
   // Proposes a loop for the newest keyframe, registers it, and adds the
   // constraint. Kept off the graph thread because registration is the slow part.
   void runLoopDetection() {
+    int last_proposed = -1;
     while (running_ && rclcpp::ok()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(loop_period_ms_));
+
+      // proposeLoop always looks at the newest keyframe, so without this the
+      // same pair is re-proposed every tick and the same factor added over and
+      // over. The published implementation hid this behind a check for a
+      // repeated ICP score; refusing to look at a keyframe twice is the fix.
+      const int newest = static_cast<int>(store_.size()) - 1;
+      if (newest < 0 || newest == last_proposed) continue;
+      last_proposed = newest;
+
       const auto proposal = store_.proposeLoop();
       if (!proposal || proposal->previous_index == proposal->current_index) continue;
 
@@ -175,7 +225,16 @@ class PoseGraphNode : public rclcpp::Node {
       }
       RCLCPP_INFO(get_logger(), "loop %d <- %d", proposal->previous_index,
                   proposal->current_index);
+      graph_dirty_ = true;
+    }
+  }
+
+  void runOptimisation() {
+    while (running_ && rclcpp::ok()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(optimise_period_ms_));
+      if (!graph_dirty_.exchange(false)) continue;
       optimise();
+      publishPath();
     }
   }
 
@@ -221,12 +280,23 @@ class PoseGraphNode : public rclcpp::Node {
     }
   }
 
+  // One epoch time per keyframe, in the same order as the pose files, so a
+  // trajectory can be lined up with ground truth.
+  void saveKeyframeTimes(const std::string& path) const {
+    std::ofstream out(path);
+    if (!out) throw std::runtime_error("referee_slam: cannot write " + path);
+    out.precision(9);
+    out << std::fixed;
+    for (std::size_t i = 0; i < store_.size(); ++i) out << store_.stamp(static_cast<int>(i)) << "\n";
+  }
+
   void save() {
     if (store_.size() == 0) return;
     std::lock_guard<std::mutex> lock(graph_mutex_);
     try {
       savePoseGraphG2o(save_directory_ + "singlesession_posegraph.g2o", store_.poses(), edges_);
       saveVerticesKitti(save_directory_ + "odom_poses_kitti.txt", store_.poses());
+      saveKeyframeTimes(save_directory_ + "keyframe_times.txt");
       if (!estimate_.empty())
         saveVerticesKitti(save_directory_ + "optimized_poses_kitti.txt", estimate_);
       RCLCPP_INFO(get_logger(), "wrote %zu keyframes to %s", store_.size(),
@@ -237,10 +307,11 @@ class PoseGraphNode : public rclcpp::Node {
   }
 
   std::string save_directory_, frame_id_;
-  double keyframe_gap_m_;
-  int loop_period_ms_;
+  double keyframe_gap_m_, loop_noise_score_, min_loop_travel_;
+  int loop_period_ms_, save_every_, optimise_period_ms_;
   RegistrationParams registration_;
 
+  referee::RetrievalParams retrieval_;
   KeyframeStore store_;
   std::mutex graph_mutex_;
   gtsam::NonlinearFactorGraph graph_;
@@ -261,7 +332,8 @@ class PoseGraphNode : public rclcpp::Node {
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
 
   std::atomic<bool> running_{true};
-  std::thread graph_worker_, loop_worker_;
+  std::atomic<bool> graph_dirty_{false};
+  std::thread graph_worker_, loop_worker_, optimise_worker_;
 };
 
 }  // namespace referee_slam

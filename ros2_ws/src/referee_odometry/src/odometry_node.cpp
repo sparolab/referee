@@ -41,8 +41,33 @@ using PointType = pcl::PointXYZI;
 // consumers which assume a 3-D cloud do not see a degenerate one.
 constexpr float kFeatureHeight = 1.0f;
 
-int64_t epochFromFileName(const std::string& name) {
-  return std::stoll(name.substr(0, name.find('.')));
+// Scan file names are epoch times, but the unit varies by dataset: Oxford
+// writes microseconds, MulRan nanoseconds. The published implementation assumed
+// microseconds unconditionally, which made every MulRan interval come out a
+// thousand times too long - 249.6 s between two scans of a 4 Hz radar - and fed
+// that straight into the motion-distortion and Doppler correction.
+//
+// The magnitude says which unit it is: a plausible epoch is ~1e9 s, ~1e12 ms,
+// ~1e15 us or ~1e18 ns.
+int64_t epochNanosecondsFromFileName(const std::string& name) {
+  const int64_t value = std::stoll(name.substr(0, name.find('.')));
+  if (value <= 0) return 0;
+  for (int64_t scale : {1000000000LL, 1000000LL, 1000LL, 1LL}) {
+    const int64_t seconds = value / (1000000000LL / scale);
+    if (seconds > 1000000000LL && seconds < 4000000000LL) return value * scale;
+  }
+  return value;  // not an epoch at all, e.g. the 000000.png examples
+}
+
+// Seconds per unit of the per-azimuth header timestamps. They carry the same
+// unit as the file names, and the motion estimator needs the two consistent:
+// the published implementation hard-coded 1e-6 in both places, so on MulRan
+// both were a thousand times out and the error cancelled.
+double headerTimeScale(const std::vector<int64_t>& stamps) {
+  if (stamps.empty() || stamps.front() <= 0) return 1.0e-6;
+  const int64_t nanoseconds = epochNanosecondsFromFileName(std::to_string(stamps.front()));
+  if (nanoseconds <= 0) return 1.0e-6;
+  return 1.0e-9 * static_cast<double>(nanoseconds) / static_cast<double>(stamps.front());
 }
 
 }  // namespace
@@ -56,6 +81,17 @@ class RadarOdometryNode : public rclcpp::Node {
     child_frame_id_ = declare_parameter<std::string>("child_frame_id", "radar");
 
     min_range_ = declare_parameter<int>("min_range", 58);
+    // Metres per range bin, and metres per pixel of the cartesian image built
+    // from it. These two are not independent: the feature coordinates and the
+    // image the descriptors are matched on must agree, and the published values
+    // stand in a 6:1 ratio. Changing one alone misaligns them and corrupts the
+    // rotation estimate - on MulRan KAIST_03 that turned a trajectory that
+    // closes its loop (54 m end-to-end) into one that does not (336 m), even
+    // though it made the path length match ground truth better.
+    //
+    // The published pair underestimates absolute distance on MulRan by about a
+    // quarter (path 4583 m against 6204 m of ground truth) but keeps the shape,
+    // which is what the pose graph needs. Rescaling means moving both.
     radar_resolution_ = declare_parameter<double>("radar_resolution", 0.0432);
     cart_resolution_ = declare_parameter<double>("cart_resolution", 0.2592);
     cart_pixel_width_ = declare_parameter<int>("cart_pixel_width", 964);
@@ -127,12 +163,14 @@ class RadarOdometryNode : public rclcpp::Node {
       std::vector<bool> valid;
       cv::Mat power;
       load_radar(scan_dir + "/" + scans[i], times, azimuths, valid, power, CIR204);
+      const std::vector<int64_t>& power_stamps = times;
 
       Eigen::MatrixXd targets;
       cen2018features(power, static_cast<float>(zq_), sigma_gauss_, min_range_, targets);
       const Eigen::MatrixXd polar = targets_to_polar_image(power, targets);
 
-      publishDescriptor(polar);
+      const rclcpp::Time stamp = scanStamp(scans[i]);
+      publishDescriptor(polar, stamp);
 
       radar_polar_to_cartesian(azimuths, power, static_cast<float>(radar_resolution_),
                                static_cast<float>(cart_resolution_), cart_pixel_width_, true,
@@ -149,12 +187,14 @@ class RadarOdometryNode : public rclcpp::Node {
       const Eigen::MatrixXd motion =
           estimateMotion(matcher, previous_desc, current_desc, previous_targets, current_targets,
                          previous_times, current_times,
-                         (epochFromFileName(scans[i + 1]) - epochFromFileName(scans[i])) / 1e6,
+                         (epochNanosecondsFromFileName(scans[i + 1]) -
+                          epochNanosecondsFromFileName(scans[i])) / 1e9,
+                         headerTimeScale(power_stamps),
                          static_cast<int>(i));
       pose = pose * motion;
 
-      publishPose(pose);
-      publishClouds(feature_cloud, pose);
+      publishPose(pose, stamp);
+      publishClouds(feature_cloud, pose, stamp);
 
       if (period_ms_ > 0)
         std::this_thread::sleep_for(std::chrono::milliseconds(period_ms_));
@@ -169,7 +209,8 @@ class RadarOdometryNode : public rclcpp::Node {
                                  const Eigen::MatrixXd& targets1,
                                  const Eigen::MatrixXd& targets2,
                                  const std::vector<int64_t>& times1,
-                                 const std::vector<int64_t>& times2, double delta_t, int seed) {
+                                 const std::vector<int64_t>& times2, double delta_t,
+                                 double time_scale, int seed) {
     std::vector<std::vector<cv::DMatch>> knn;
     matcher->knnMatch(desc1, desc2, knn, 2);
 
@@ -190,7 +231,7 @@ class RadarOdometryNode : public rclcpp::Node {
     }
 
     MotionDistortedRansac mdransac(p2, p1, t2, t1, std::pow(ransac_threshold_, 2), inlier_ratio_,
-                                   max_iterations_);
+                                   max_iterations_, time_scale);
     mdransac.setMaxGNIterations(max_gn_iterations_);
     mdransac.correctForDoppler(true);
     mdransac.setDopplerParameter(doppler_beta_);
@@ -202,16 +243,22 @@ class RadarOdometryNode : public rclcpp::Node {
     return transform.inverse();
   }
 
-  void publishDescriptor(const Eigen::MatrixXd& polar) {
+  // The scans are replayed from disk, so their own epoch times are the only
+  // stamps that mean anything downstream.
+  static rclcpp::Time scanStamp(const std::string& file_name) {
+    return rclcpp::Time(epochNanosecondsFromFileName(file_name));
+  }
+
+  void publishDescriptor(const Eigen::MatrixXd& polar, const rclcpp::Time& stamp) {
     referee_interfaces::msg::RefereeDescriptor msg;
-    msg.header.stamp = now();
+    msg.header.stamp = stamp;
     msg.header.frame_id = child_frame_id_;
     msg.range_descriptor = referee::makeRangeDescriptor(polar);
     msg.angle_descriptor = referee::makeAngleDescriptor(polar);
     descriptor_pub_->publish(msg);
   }
 
-  void publishPose(const Eigen::MatrixXd& pose) {
+  void publishPose(const Eigen::MatrixXd& pose, const rclcpp::Time& stamp) {
     const Eigen::Matrix3d rotation = pose.block(0, 0, 3, 3);
     const double yaw = rotation.eulerAngles(0, 1, 2)(2);
 
@@ -219,7 +266,7 @@ class RadarOdometryNode : public rclcpp::Node {
     q.setRPY(0.0, 0.0, yaw);
 
     nav_msgs::msg::Odometry odom;
-    odom.header.stamp = now();
+    odom.header.stamp = stamp;
     odom.header.frame_id = frame_id_;
     odom.child_frame_id = child_frame_id_;
     odom.pose.pose.position.x = pose(0, 3);
@@ -229,7 +276,8 @@ class RadarOdometryNode : public rclcpp::Node {
     odom_pub_->publish(odom);
   }
 
-  void publishClouds(const Eigen::MatrixXd& features, const Eigen::MatrixXd& pose) {
+  void publishClouds(const Eigen::MatrixXd& features, const Eigen::MatrixXd& pose,
+                     const rclcpp::Time& stamp) {
     pcl::PointCloud<PointType> local, global;
     local.reserve(features.cols());
     global.reserve(features.cols());
@@ -247,7 +295,6 @@ class RadarOdometryNode : public rclcpp::Node {
       global.back().z = static_cast<float>(pose(2, 0) * x + pose(2, 1) * y + pose(2, 2) * z + pose(2, 3));
     }
 
-    const auto stamp = now();
     for (auto* entry : {&local, &global}) {
       sensor_msgs::msg::PointCloud2 msg;
       pcl::toROSMsg(*entry, msg);

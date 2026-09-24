@@ -32,11 +32,19 @@ class KeyframeStore {
  public:
   explicit KeyframeStore(referee::RetrievalParams params = {}) : range_db_(params) {}
 
+  // Must be called before the first keyframe is added.
+  void setRetrievalParams(const referee::RetrievalParams& params) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    range_db_ = referee::RangeDescriptorDatabase(params);
+  }
+
   // Adds a keyframe and its descriptors together, so the pose, the cloud and
   // the two descriptor databases cannot fall out of step.
   int add(const Pose6D& pose, double stamp, Cloud::Ptr cloud,
           std::vector<float> range_descriptor, std::vector<float> angle_descriptor) {
     std::lock_guard<std::mutex> lock(mutex_);
+    travelled_.push_back(poses_.empty() ? 0.0
+                                        : travelled_.back() + translationBetween(poses_.back(), pose));
     poses_.push_back(pose);
     optimised_poses_.push_back(pose);
     stamps_.push_back(stamp);
@@ -84,14 +92,30 @@ class KeyframeStore {
     optimised_poses_.at(static_cast<std::size_t>(index)) = pose;
   }
 
-  // The most recent keyframe against every earlier one. Returns nothing when no
-  // candidate clears the similarity threshold.
+  // How far the vehicle must have travelled since a keyframe before it may be
+  // proposed as a loop. This is a distance, not a count: excluding a fixed
+  // number of keyframes means excluding whatever distance the keyframe spacing
+  // happens to give, so the same setting rejects real revisits at one spacing
+  // and accepts the road just travelled at another.
+  void setMinLoopTravel(double metres) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    min_loop_travel_ = metres;
+  }
+
+  // The most recent keyframe against the earlier ones. Returns nothing when no
+  // candidate clears the threshold.
   std::optional<LoopProposal> proposeLoop() const {
     std::lock_guard<std::mutex> lock(mutex_);
     if (poses_.empty()) return std::nullopt;
     const int current = static_cast<int>(poses_.size()) - 1;
 
-    const auto candidate = range_db_.detectLoopClosure(range_descriptors_.at(current));
+    // Candidates are the keyframes at least min_loop_travel_ back along the path.
+    int eligible = current;
+    while (eligible > 0 && travelled_[current] - travelled_[eligible - 1] < min_loop_travel_)
+      --eligible;
+    if (eligible <= 0) return std::nullopt;
+
+    const auto candidate = range_db_.detectLoopClosure(range_descriptors_.at(current), eligible);
     if (!candidate) return std::nullopt;
 
     return LoopProposal{candidate.index, current,
@@ -102,6 +126,8 @@ class KeyframeStore {
   mutable std::mutex mutex_;
   std::vector<Pose6D> poses_, optimised_poses_;
   std::vector<double> stamps_;
+  std::vector<double> travelled_;   // cumulative path length, one per keyframe
+  double min_loop_travel_ = 100.0;  // metres
   std::vector<Cloud::Ptr> clouds_;
   std::vector<std::vector<float>> range_descriptors_, angle_descriptors_;
   referee::RangeDescriptorDatabase range_db_;
