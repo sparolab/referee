@@ -1,0 +1,7 @@
+# Build trees must not enter the image: a CMakeCache.txt baked from a host path
+# breaks the in-image configure step.
+**/build/
+.git/
+__pycache__/
+*.pyc
+assets/
