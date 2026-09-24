@@ -4,9 +4,13 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
-#include <features.hpp>
+#include "referee/features.hpp"
 
-double cen2018features(cv::Mat fft_data, float zq, int sigma_gauss, int min_range, Eigen::MatrixXd &targets) {
+namespace referee {
+
+double cen2018features(const cv::Mat& power, float zq, int sigma_gauss, int min_range,
+                       Eigen::MatrixXd& targets) {
+    const cv::Mat& fft_data = power;
     auto t1 = std::chrono::high_resolution_clock::now();
 
     std::vector<float> sigma_q(fft_data.rows, 0);
@@ -95,3 +99,5 @@ double cen2018features(cv::Mat fft_data, float zq, int sigma_gauss, int min_rang
     std::chrono::duration<double> e = t2 - t1;
     return e.count();
 }
+
+}  // namespace referee
