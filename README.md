@@ -39,6 +39,20 @@
   <p align="center"><img src="fig/pipeline.png") alt="animated" width="80%" /></p>
 
 
+## SLAM
+
+ReFeree closing loops over radar odometry, on MulRan `KAIST_03` — 3395
+keyframes, 2171 loops. Odometry alone drifts to 98.3 m; with loop closure the
+error stays near 6 m for the whole 6.2 km route.
+
+<p align="center"><img src="fig/kaist03_trajectory.png" alt="KAIST_03 trajectory" width="90%" /></p>
+
+```bash
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml run --rm build
+docker compose -f docker/docker-compose.yml run --rm slam
+```
+
 ## How to use the ReFeree?
 * Python version
     ```

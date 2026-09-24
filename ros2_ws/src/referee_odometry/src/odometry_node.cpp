@@ -81,17 +81,8 @@ class RadarOdometryNode : public rclcpp::Node {
     child_frame_id_ = declare_parameter<std::string>("child_frame_id", "radar");
 
     min_range_ = declare_parameter<int>("min_range", 58);
-    // Metres per range bin, and metres per pixel of the cartesian image built
-    // from it. These two are not independent: the feature coordinates and the
-    // image the descriptors are matched on must agree, and the published values
-    // stand in a 6:1 ratio. Changing one alone misaligns them and corrupts the
-    // rotation estimate - on MulRan KAIST_03 that turned a trajectory that
-    // closes its loop (54 m end-to-end) into one that does not (336 m), even
-    // though it made the path length match ground truth better.
-    //
-    // The published pair underestimates absolute distance on MulRan by about a
-    // quarter (path 4583 m against 6204 m of ground truth) but keeps the shape,
-    // which is what the pose graph needs. Rescaling means moving both.
+    // Metres per range bin. Entangled with the encoder convention the azimuths
+    // are read under, so it is left where the published code had it.
     radar_resolution_ = declare_parameter<double>("radar_resolution", 0.0432);
     cart_resolution_ = declare_parameter<double>("cart_resolution", 0.2592);
     cart_pixel_width_ = declare_parameter<int>("cart_pixel_width", 964);
